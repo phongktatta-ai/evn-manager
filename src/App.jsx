@@ -69,7 +69,7 @@ const processRawArray = (rawRows, keyword) => {
 };
 
 /**
- * Component Mẫu in Phiếu chỉ định (Fix lỗi Font tiếng Việt)
+ * Component Mẫu in Phiếu chỉ định (Khổ ngang & Xóa thông tin thừa)
  */
 const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
   const today = new Date();
@@ -79,14 +79,21 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
     <div className="print-only-container hidden print:block bg-white text-black p-0 m-0 w-full">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          @page { size: A4; margin: 15mm 10mm 15mm 20mm; }
+          /* Cấu hình khổ giấy nằm ngang và xóa lề để ẩn header/footer mặc định của trình duyệt */
+          @page { 
+            size: A4 landscape; 
+            margin: 0; 
+          }
+          body { 
+            margin: 0; 
+            -webkit-print-color-adjust: exact; 
+          }
           body * { visibility: hidden; }
           .print-only-container, .print-only-container * { 
             visibility: visible; 
             font-family: "Times New Roman", Times, serif !important;
             color: black !important;
             text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
           }
           .print-only-container { 
             position: absolute; 
@@ -94,54 +101,56 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
             top: 0; 
             width: 100%; 
             display: block !important; 
+            padding: 15mm 10mm 15mm 15mm; /* Thêm padding bù lại margin: 0 */
+            box-sizing: border-box;
           }
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid black !important; padding: 4px; }
+          table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+          th, td { border: 1px solid black !important; padding: 6px 4px; vertical-align: middle; }
+          .no-break { break-inside: avoid; }
         }
-        .admin-line-height { line-height: 1.5; }
-        .text-justify { text-align: justify; }
+        .admin-line-height { line-height: 1.4; }
       `}} />
       
       {/* QUỐC HIỆU & ĐƠN VỊ */}
-      <div className="flex justify-between items-start mb-2 text-[11.5pt]">
-        <div className="text-center w-[45%]">
-          <h4 className="font-bold uppercase mb-0">CÔNG TY ĐIỆN LỰC THUẬN AN</h4>
-          <h5 className="font-bold border-b border-black inline-block px-2 uppercase mb-1">Phòng Kỹ thuật và An toàn</h5>
-          <div className="flex flex-col items-center mt-1">
-             <p className="m-0">Số: ......... /KTAT</p>
-             <p className="m-0 text-[10pt] italic">V/v điều động MBT để {metadata.reason || 'nội dung...'}</p>
+      <div className="flex justify-between items-start mb-2 text-[11pt]">
+        <div className="text-center w-[40%]">
+          <h4 className="font-bold uppercase mb-0 leading-tight">CÔNG TY ĐIỆN LỰC THUẬN AN</h4>
+          <h5 className="font-bold border-b border-black inline-block px-1 uppercase mb-1 leading-tight">Phòng Kỹ thuật và An toàn</h5>
+          <div className="flex flex-col items-center mt-2">
+             <p className="m-0 leading-none">Số: ......... /KTAT</p>
+             <p className="m-0 text-[10pt] italic mt-1">V/v điều động MBT để {metadata.reason || 'nội dung...'}</p>
           </div>
         </div>
-        <div className="text-center w-[55%]">
-          <h4 className="font-bold uppercase mb-0">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h4>
-          <h5 className="font-bold border-b border-black inline-block px-2 uppercase mb-1">Độc lập - Tự Do - Hạnh Phúc</h5>
-          <p className="mt-1 italic">Thuận An, ngày {today.getDate()} tháng {today.getMonth() + 1} năm {today.getFullYear()}</p>
+        <div className="text-center w-[50%]">
+          <h4 className="font-bold uppercase mb-0 leading-tight">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h4>
+          <h5 className="font-bold border-b border-black inline-block px-2 uppercase mb-1 leading-tight">Độc lập - Tự Do - Hạnh Phúc</h5>
+          <p className="mt-2 italic">Thuận An, ngày {today.getDate()} tháng {today.getMonth() + 1} năm {today.getFullYear()}</p>
         </div>
       </div>
 
       {/* TIÊU ĐỀ */}
-      <div className="text-center mb-6 mt-8">
-        <h2 className="text-[15pt] font-bold uppercase mb-1">PHIẾU CHỈ ĐỊNH MÁY BIẾN THẾ</h2>
+      <div className="text-center mb-6 mt-6">
+        <h2 className="text-[16pt] font-bold uppercase mb-1">PHIẾU CHỈ ĐỊNH MÁY BIẾN THẾ</h2>
         <p className="font-bold italic text-[12pt]">Kính gửi: Ông Giám đốc</p>
       </div>
 
-      {/* CĂN CỨ */}
-      <div className="mb-4 text-[12pt] admin-line-height text-justify px-2">
+      {/* NỘI DUNG CĂN CỨ */}
+      <div className="mb-4 text-[11.5pt] admin-line-height text-justify">
         <p className="mb-1">- Căn cứ quyết định số 4338/QĐ-EVNHCMC ngày 10/10/2023 về việc ban hành Quy định quản lý và hạch toán vật tư thiết bị áp dụng trong Tổng công ty Điện lực TP.HCM .</p>
         <p className="mb-1">- Căn cứ {metadata.grounds || 'văn bản số 150/QLLĐ ngày 12/01/2026 của Đội QLLĐ về việc xử lý quá tải TBT công cộng Chùa Bà Lái Thiêu 3.'}</p>
         <p>Để quản lý vật tư thiết bị theo đúng qui định, Phòng KT&AT lập phiếu điều động MBT với nội dung sau :</p>
       </div>
 
-      {/* BẢNG DỮ LIỆU CHÍNH */}
-      <table className="w-full text-center text-[10pt] mb-6 border-black">
-        <thead className="font-bold bg-gray-100">
+      {/* BẢNG DỮ LIỆU CHÍNH (KHỔ NGANG) */}
+      <table className="w-full text-center text-[10pt] mb-6">
+        <thead className="font-bold bg-gray-50">
           <tr>
             <th style={{ width: '30px' }}>STT</th>
             <th>MSTS</th>
             <th>Hiệu máy</th>
             <th>Số máy</th>
-            <th>Công suất (kVA)</th>
-            <th style={{ width: '50px' }}>Năm SX</th>
+            <th style={{ width: '90px' }}>Công suất (kVA)</th>
+            <th style={{ width: '60px' }}>Năm SX</th>
             <th>Tên nơi đi</th>
             <th>Mã nơi đi</th>
             <th>Tên nơi đến</th>
@@ -155,19 +164,19 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
               <td>{item.transformer.MSTS || '-'}</td>
               <td>{item.transformer['Hiệu máy'] || item.transformer['HIỆU'] || '-'}</td>
               <td>{item.transformer['Số máy'] || item.transformer['SERIAL NUMBER'] || '-'}</td>
-              <td>{item.transformer['Công suất'] || item.transformer['CS MBT'] || '-'}</td>
+              <td className="font-bold">{item.transformer['Công suất'] || item.transformer['CS MBT'] || '-'}</td>
               <td>{item.transformer['Năm SX'] || '-'}</td>
               <td className="text-left px-1">{item.source.name}</td>
-              <td>{item.source.id}</td>
-              <td className="text-left px-1">{item.destination.name}</td>
-              <td>{item.destination.id}</td>
+              <td className="text-[9pt]">{item.source.id}</td>
+              <td className="text-left px-1 font-bold">{item.destination.name}</td>
+              <td className="text-[9pt]">{item.destination.id}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
       {/* PHÂN CÔNG THỰC HIỆN */}
-      <div className="mb-6 text-[11.5pt] admin-line-height px-2">
+      <div className="mb-6 text-[11pt] admin-line-height">
         <h5 className="font-bold underline uppercase mb-2">Phân công thực hiện:</h5>
         <div className="space-y-1">
           <p><span className="font-bold">Đội VHLĐ:</span> Thông báo thời gian mất điện khách hàng theo quy định; Bàn giao hiện trường, cấp phiếu công tác để Đội QLLĐ thi công thay MBT.</p>
@@ -181,10 +190,10 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
       </div>
 
       {/* CHỮ KÝ */}
-      <div className="flex justify-between mt-4 text-[11pt] px-2">
-        <div className="w-[30%]">
+      <div className="flex justify-between mt-4 text-[11pt] no-break">
+        <div className="w-[25%]">
           <p className="font-bold underline mb-1">Nơi nhận:</p>
-          <ul className="list-none p-0 m-0 leading-tight italic text-[10pt]">
+          <ul className="list-none p-0 m-0 leading-tight italic text-[9.5pt]">
             <li>- Ban giám đốc (để báo cáo);</li>
             <li>- Đội QLVH, QLLĐ (để thực hiện);</li>
             <li>- Phòng KHVT, TCKT (để thực hiện);</li>
@@ -206,9 +215,9 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
       </div>
 
       {/* PHÊ DUYỆT */}
-      <div className="mt-8 border-t border-black pt-4 text-[12pt] px-2">
+      <div className="mt-8 border-t border-black pt-4 text-[11.5pt] no-break">
           <p className="font-bold italic">Ý kiến phê duyệt của Giám đốc Đặng Hoài Bắc:</p>
-          <div className="h-24"></div>
+          <div className="h-20"></div>
       </div>
     </div>
   );
@@ -266,7 +275,7 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
                 ))}
               </tr>
             )) : (
-              <tr><td colSpan={columns.length} className="p-10 text-center text-slate-400 italic">Không tìm thấy dữ liệu</td></tr>
+              <tr><td colSpan={columns.length} className="p-10 text-center text-slate-400 italic font-medium">Không tìm thấy dữ liệu phù hợp</td></tr>
             )}
           </tbody>
         </table>
@@ -379,7 +388,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 overflow-hidden">
       
-      {/* TRANG IN ĐÃ FIX LỖI FONT TIẾNG VIỆT */}
+      {/* TRANG IN KHỔ NGANG & ĐÃ XÓA THÔNG TIN THỪA */}
       <DispatchPrintTemplate dispatchList={dispatchCart} metadata={metadata} />
 
       {/* SIDEBAR NAVIGATION */}
@@ -417,7 +426,7 @@ export default function App() {
           </div>
         )}
 
-        <div className="h-full flex flex-col gap-6 overflow-hidden">
+        <div className="h-full flex flex-col gap-6 overflow-hidden px-1">
           {activeTab === 'dashboard' && (
             <div className="space-y-6 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-top duration-700">
               <div className="flex justify-between items-center">
@@ -449,10 +458,10 @@ export default function App() {
           )}
 
           {activeTab === 'dispatch' && (
-            <div className="space-y-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-auto pb-10 px-1">
+            <div className="space-y-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-auto pb-10">
               <div className="flex flex-col gap-1">
-                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic font-black">Phiếu Điều Động MBT</h2>
-                <p className="text-slate-500 font-medium">Lập lệnh điều động theo đúng quy chuẩn PC Thuận An.</p>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic font-black">Lập Phiếu MBT</h2>
+                <p className="text-slate-500 font-medium">Lập lệnh điều động khổ ngang, xóa URL và thời gian in tự động.</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-fit">
@@ -483,7 +492,7 @@ export default function App() {
 
                 {/* FORM CHỌN MÁY */}
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1 h-fit">
-                  <h3 className="font-bold text-blue-600 flex items-center gap-2 uppercase text-sm tracking-widest"><Plus className="w-5 h-5"/> Thêm máy điều động</h3>
+                  <h3 className="font-bold text-blue-600 flex items-center gap-2 uppercase text-sm tracking-widest"><Plus className="w-5 h-5"/> Thêm MBT</h3>
                   
                   <div className="space-y-3">
                     <select 
@@ -545,7 +554,7 @@ export default function App() {
                 {/* DANH SÁCH LỆNH */}
                 <div className="bg-slate-800 text-white p-6 rounded-3xl shadow-xl flex flex-col h-full lg:col-span-1 min-h-[450px]">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold flex items-center gap-2 text-xs uppercase tracking-widest"><FileText className="w-4 h-4 text-emerald-400"/> Phiếu điều động</h3>
+                    <h3 className="font-bold flex items-center gap-2 text-xs uppercase tracking-widest"><FileText className="w-4 h-4 text-emerald-400"/> Phiếu tạm</h3>
                     <button 
                       onClick={() => window.print()}
                       disabled={dispatchCart.length === 0}
