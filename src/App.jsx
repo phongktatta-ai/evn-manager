@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Zap, Activity, Warehouse, 
   Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   DownloadCloud, Loader2, CheckCircle2, XCircle, RefreshCw, Clock,
-  ArrowLeftRight, FileText, Plus, Trash2, Printer, Info
+  ArrowLeftRight, FileText, Plus, Trash2, Printer, Info, CheckSquare, Square
 } from 'lucide-react';
 
 // Cấu hình đường dẫn cố định
@@ -310,7 +310,8 @@ export default function App() {
   const [dispatchCart, setDispatchCart] = useState([]);
   const [sourceLoc, setSourceLoc] = useState({ type: '', id: '', name: '' });
   const [destLoc, setDestLoc] = useState({ type: '', id: '', name: '' });
-  const [selectedTransformer, setSelectedTransformer] = useState(null);
+  // Chuyển sang state lưu danh sách các ID đã chọn thay vì 1 đối tượng duy nhất
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const showStatus = (text, type = 'info') => {
     setStatusMsg({ text, type });
@@ -364,17 +365,37 @@ export default function App() {
     return [];
   }, [sourceLoc, data]);
 
+  // Hàm toggle chọn máy
+  const toggleSelect = (mId) => {
+    setSelectedIds(prev => 
+      prev.includes(mId) ? prev.filter(id => id !== mId) : [...prev, mId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === availableTransformers.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(availableTransformers.map(m => m['Số máy'] || m['SERIAL NUMBER']));
+    }
+  };
+
   const addToDispatch = () => {
-    if (!sourceLoc.id || !destLoc.id || !selectedTransformer) {
-      alert("Vui lòng chọn đầy đủ Nơi đi, Nơi đến và Máy!");
+    if (!sourceLoc.id || !destLoc.id || selectedIds.length === 0) {
+      alert("Vui lòng chọn đầy đủ Nơi đi, Nơi đến và ít nhất một máy biến áp!");
       return;
     }
-    setDispatchCart([...dispatchCart, { 
-      source: { ...sourceLoc }, 
-      destination: { ...destLoc }, 
-      transformer: selectedTransformer 
-    }]);
-    setSelectedTransformer(null);
+    
+    const newItems = availableTransformers
+      .filter(m => selectedIds.includes(m['Số máy'] || m['SERIAL NUMBER']))
+      .map(transformer => ({
+        source: { ...sourceLoc }, 
+        destination: { ...destLoc }, 
+        transformer: transformer
+      }));
+
+    setDispatchCart([...dispatchCart, ...newItems]);
+    setSelectedIds([]); // Reset lựa chọn sau khi thêm
   };
 
   const navItems = [
@@ -461,7 +482,7 @@ export default function App() {
             <div className="space-y-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-auto pb-10">
               <div className="flex flex-col gap-1">
                 <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic font-black">Lập Phiếu MBT</h2>
-                <p className="text-slate-500 font-medium">Lập lệnh điều động khổ ngang, xóa URL và thời gian in tự động.</p>
+                <p className="text-slate-500 font-medium">Lập lệnh điều động nhiều máy cùng lúc nhanh chóng.</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-fit">
@@ -490,9 +511,9 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* FORM CHỌN MÁY */}
+                {/* FORM CHỌN MÁY (Nâng cấp Checklist) */}
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1 h-fit">
-                  <h3 className="font-bold text-blue-600 flex items-center gap-2 uppercase text-sm tracking-widest"><Plus className="w-5 h-5"/> Thêm MBT</h3>
+                  <h3 className="font-bold text-blue-600 flex items-center gap-2 uppercase text-sm tracking-widest"><Plus className="w-5 h-5"/> Chọn nguồn và đích</h3>
                   
                   <div className="space-y-3">
                     <select 
@@ -504,30 +525,52 @@ export default function App() {
                           const trạm = data.tbt.find(t => t.TBTID === val);
                           setSourceLoc({ type: 'TRAM', id: val, name: trạm?.['TÊN DỰ KIẾN'] || val });
                         } else setSourceLoc({ type: '', id: '', name: '' });
-                        setSelectedTransformer(null);
+                        setSelectedIds([]);
                       }}
                     >
-                      <option value="">-- Chọn Nơi Đi (Nguồn) --</option>
+                      <option value="">-- Bước 1: Chọn Nơi Đi --</option>
                       <option value="KHO">KHO THIẾT BỊ (Kho hiện tại)</option>
                       {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
                     </select>
 
-                    <select 
-                      disabled={!sourceLoc.id}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold disabled:opacity-40"
-                      value={selectedTransformer ? (selectedTransformer['Số máy'] || selectedTransformer['SERIAL NUMBER']) : ""}
-                      onChange={(e) => {
-                        const mbt = availableTransformers.find(m => (m['Số máy'] || m['SERIAL NUMBER']) === e.target.value);
-                        setSelectedTransformer(mbt);
-                      }}
-                    >
-                      <option value="">-- Chọn MBT ({availableTransformers.length}) --</option>
-                      {availableTransformers.map((m, i) => (
-                        <option key={i} value={m['Số máy'] || m['SERIAL NUMBER']}>
-                          {m['Số máy'] || m['SERIAL NUMBER']} - {m['Công suất'] || m['CS MBT']}kVA
-                        </option>
-                      ))}
-                    </select>
+                    {/* Vùng Checklist MBT */}
+                    <div className="space-y-2 border border-slate-100 rounded-2xl p-1">
+                      <div className="flex justify-between items-center px-2 py-1 bg-slate-50 rounded-xl mb-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Bước 2: Chọn máy ({selectedIds.length}/{availableTransformers.length})</span>
+                        {availableTransformers.length > 0 && (
+                          <button 
+                            onClick={toggleSelectAll}
+                            className="text-[10px] font-bold text-blue-600 hover:underline"
+                          >
+                            {selectedIds.length === availableTransformers.length ? 'Bỏ chọn hết' : 'Chọn tất cả'}
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                        {availableTransformers.length === 0 ? (
+                          <p className="text-center py-4 text-xs text-slate-400 italic">Chọn nơi đi để xem danh sách máy</p>
+                        ) : (
+                          availableTransformers.map((m, i) => {
+                            const mId = m['Số máy'] || m['SERIAL NUMBER'];
+                            const isSelected = selectedIds.includes(mId);
+                            return (
+                              <button 
+                                key={i}
+                                onClick={() => toggleSelect(mId)}
+                                className={`w-full flex items-center gap-3 p-2 rounded-xl border transition-all text-left ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-100 hover:bg-slate-50'}`}
+                              >
+                                {isSelected ? <CheckSquare className="w-4 h-4 text-blue-600 shrink-0" /> : <Square className="w-4 h-4 text-slate-300 shrink-0" />}
+                                <div className="overflow-hidden">
+                                  <p className="text-xs font-bold truncate">Số máy: {mId}</p>
+                                  <p className="text-[10px] text-slate-500">{m['Công suất'] || m['CS MBT']}kVA | {m['Hiệu máy'] || 'N/A'}</p>
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
 
                     <select 
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
@@ -540,14 +583,18 @@ export default function App() {
                         } else setDestLoc({ type: '', id: '', name: '' });
                       }}
                     >
-                      <option value="">-- Chọn Nơi Đến (Đích) --</option>
+                      <option value="">-- Bước 3: Chọn Nơi Đến --</option>
                       <option value="KHO">VỀ KHO THIẾT BỊ</option>
                       {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
                     </select>
                   </div>
 
-                  <button onClick={addToDispatch} className="w-full bg-blue-600 text-white p-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg active:scale-95 transition-all text-xs">
-                    Thêm vào danh sách
+                  <button 
+                    onClick={addToDispatch} 
+                    disabled={selectedIds.length === 0}
+                    className="w-full bg-blue-600 text-white p-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg active:scale-95 transition-all text-xs disabled:opacity-30"
+                  >
+                    Thêm {selectedIds.length > 0 ? selectedIds.length : ''} máy vào phiếu
                   </button>
                 </div>
 
