@@ -69,29 +69,44 @@ const processRawArray = (rawRows, keyword) => {
 };
 
 /**
- * Component Mẫu in Phiếu chỉ định chuẩn PC Thuận An
+ * Component Mẫu in Phiếu chỉ định (Fix lỗi Font tiếng Việt)
  */
 const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
   const today = new Date();
   if (!dispatchList || dispatchList.length === 0) return null;
 
   return (
-    <div className="print-only-container hidden print:block bg-white text-black p-0 m-0 w-full font-serif">
+    <div className="print-only-container hidden print:block bg-white text-black p-0 m-0 w-full">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           @page { size: A4; margin: 15mm 10mm 15mm 20mm; }
           body * { visibility: hidden; }
-          .print-only-container, .print-only-container * { visibility: visible; }
-          .print-only-container { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
+          .print-only-container, .print-only-container * { 
+            visibility: visible; 
+            font-family: "Times New Roman", Times, serif !important;
+            color: black !important;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+          }
+          .print-only-container { 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            display: block !important; 
+          }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid black !important; padding: 4px; }
         }
-        .line-height-print { line-height: 1.4; }
+        .admin-line-height { line-height: 1.5; }
+        .text-justify { text-align: justify; }
       `}} />
       
-      {/* HEADER */}
-      <div className="flex justify-between items-start mb-4 text-[11pt]">
+      {/* QUỐC HIỆU & ĐƠN VỊ */}
+      <div className="flex justify-between items-start mb-2 text-[11.5pt]">
         <div className="text-center w-[45%]">
           <h4 className="font-bold uppercase mb-0">CÔNG TY ĐIỆN LỰC THUẬN AN</h4>
-          <h5 className="font-bold border-b border-black inline-block px-1 uppercase mb-1">Phòng Kỹ thuật và An toàn</h5>
+          <h5 className="font-bold border-b border-black inline-block px-2 uppercase mb-1">Phòng Kỹ thuật và An toàn</h5>
           <div className="flex flex-col items-center mt-1">
              <p className="m-0">Số: ......... /KTAT</p>
              <p className="m-0 text-[10pt] italic">V/v điều động MBT để {metadata.reason || 'nội dung...'}</p>
@@ -99,60 +114,60 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </div>
         <div className="text-center w-[55%]">
           <h4 className="font-bold uppercase mb-0">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h4>
-          <h5 className="font-bold border-b border-black inline-block px-1 uppercase mb-1">Độc lập - Tự Do - Hạnh Phúc</h5>
+          <h5 className="font-bold border-b border-black inline-block px-2 uppercase mb-1">Độc lập - Tự Do - Hạnh Phúc</h5>
           <p className="mt-1 italic">Thuận An, ngày {today.getDate()} tháng {today.getMonth() + 1} năm {today.getFullYear()}</p>
         </div>
       </div>
 
-      {/* TITLE */}
+      {/* TIÊU ĐỀ */}
       <div className="text-center mb-6 mt-8">
-        <h2 className="text-[14pt] font-bold uppercase mb-1">PHIẾU CHỈ ĐỊNH MÁY BIẾN THẾ</h2>
+        <h2 className="text-[15pt] font-bold uppercase mb-1">PHIẾU CHỈ ĐỊNH MÁY BIẾN THẾ</h2>
         <p className="font-bold italic text-[12pt]">Kính gửi: Ông Giám đốc</p>
       </div>
 
-      {/* LEGAL GROUNDS */}
-      <div className="mb-4 text-[11pt] line-height-print text-justify">
-        <p className="mb-1">- Căn cứ quyết định số 4338/QĐ-EVNHCMC ngày 10/10/2023 về việc ban hành Quy định quản lý và hạch toán vật tư thiết bị áp dụng trong Tổng công ty Điện lực TP.HCM.</p>
+      {/* CĂN CỨ */}
+      <div className="mb-4 text-[12pt] admin-line-height text-justify px-2">
+        <p className="mb-1">- Căn cứ quyết định số 4338/QĐ-EVNHCMC ngày 10/10/2023 về việc ban hành Quy định quản lý và hạch toán vật tư thiết bị áp dụng trong Tổng công ty Điện lực TP.HCM .</p>
         <p className="mb-1">- Căn cứ {metadata.grounds || 'văn bản số 150/QLLĐ ngày 12/01/2026 của Đội QLLĐ về việc xử lý quá tải TBT công cộng Chùa Bà Lái Thiêu 3.'}</p>
-        <p>Để quản lý vật tư thiết bị theo đúng qui định, Phòng KT&AT lập phiếu điều động MBT với nội dung sau:</p>
+        <p>Để quản lý vật tư thiết bị theo đúng qui định, Phòng KT&AT lập phiếu điều động MBT với nội dung sau :</p>
       </div>
 
-      {/* MAIN TABLE */}
-      <table className="w-full border-collapse border border-black mb-6 text-center text-[9pt]">
-        <thead className="bg-gray-50 font-bold">
+      {/* BẢNG DỮ LIỆU CHÍNH */}
+      <table className="w-full text-center text-[10pt] mb-6 border-black">
+        <thead className="font-bold bg-gray-100">
           <tr>
-            <th className="border border-black p-1 w-8">STT</th>
-            <th className="border border-black p-1">MSTS</th>
-            <th className="border border-black p-1">Hiệu máy</th>
-            <th className="border border-black p-1">Số máy</th>
-            <th className="border border-black p-1">Công suất (kVA)</th>
-            <th className="border border-black p-1">Năm SX</th>
-            <th className="border border-black p-1">Tên nơi đi</th>
-            <th className="border border-black p-1">Mã nơi đi</th>
-            <th className="border border-black p-1">Tên nơi đến</th>
-            <th className="border border-black p-1">Mã nơi đến</th>
+            <th style={{ width: '30px' }}>STT</th>
+            <th>MSTS</th>
+            <th>Hiệu máy</th>
+            <th>Số máy</th>
+            <th>Công suất (kVA)</th>
+            <th style={{ width: '50px' }}>Năm SX</th>
+            <th>Tên nơi đi</th>
+            <th>Mã nơi đi</th>
+            <th>Tên nơi đến</th>
+            <th>Mã nơi đến</th>
           </tr>
         </thead>
         <tbody>
           {dispatchList.map((item, index) => (
             <tr key={index}>
-              <td className="border border-black p-1">{index + 1}</td>
-              <td className="border border-black p-1">{item.transformer.MSTS || '-'}</td>
-              <td className="border border-black p-1">{item.transformer['Hiệu máy'] || item.transformer['HIỆU'] || '-'}</td>
-              <td className="border border-black p-1">{item.transformer['Số máy'] || item.transformer['SERIAL NUMBER'] || '-'}</td>
-              <td className="border border-black p-1">{item.transformer['Công suất'] || item.transformer['CS MBT'] || '-'}</td>
-              <td className="border border-black p-1">{item.transformer['Năm SX'] || '-'}</td>
-              <td className="border border-black p-1 text-left px-1">{item.source.name}</td>
-              <td className="border border-black p-1">{item.source.id}</td>
-              <td className="border border-black p-1 text-left px-1">{item.destination.name}</td>
-              <td className="border border-black p-1">{item.destination.id}</td>
+              <td>{index + 1}</td>
+              <td>{item.transformer.MSTS || '-'}</td>
+              <td>{item.transformer['Hiệu máy'] || item.transformer['HIỆU'] || '-'}</td>
+              <td>{item.transformer['Số máy'] || item.transformer['SERIAL NUMBER'] || '-'}</td>
+              <td>{item.transformer['Công suất'] || item.transformer['CS MBT'] || '-'}</td>
+              <td>{item.transformer['Năm SX'] || '-'}</td>
+              <td className="text-left px-1">{item.source.name}</td>
+              <td>{item.source.id}</td>
+              <td className="text-left px-1">{item.destination.name}</td>
+              <td>{item.destination.id}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* ASSIGNMENTS */}
-      <div className="mb-6 text-[11pt] line-height-print">
+      {/* PHÂN CÔNG THỰC HIỆN */}
+      <div className="mb-6 text-[11.5pt] admin-line-height px-2">
         <h5 className="font-bold underline uppercase mb-2">Phân công thực hiện:</h5>
         <div className="space-y-1">
           <p><span className="font-bold">Đội VHLĐ:</span> Thông báo thời gian mất điện khách hàng theo quy định; Bàn giao hiện trường, cấp phiếu công tác để Đội QLLĐ thi công thay MBT.</p>
@@ -165,18 +180,18 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </div>
       </div>
 
-      {/* SIGNATURE AREA */}
-      <div className="flex justify-between mt-8 text-[10pt]">
+      {/* CHỮ KÝ */}
+      <div className="flex justify-between mt-4 text-[11pt] px-2">
         <div className="w-[30%]">
           <p className="font-bold underline mb-1">Nơi nhận:</p>
-          <ul className="list-none p-0 m-0 leading-tight italic">
+          <ul className="list-none p-0 m-0 leading-tight italic text-[10pt]">
             <li>- Ban giám đốc (để báo cáo);</li>
             <li>- Đội QLVH, QLLĐ (để thực hiện);</li>
             <li>- Phòng KHVT, TCKT (để thực hiện);</li>
             <li>- Lưu: KTAT, LHT.</li>
           </ul>
         </div>
-        <div className="flex-1 flex justify-around text-center">
+        <div className="flex-1 flex justify-around text-center pt-2">
             <div className="w-1/2">
                 <p className="font-bold uppercase mb-0">ĐỘI QLLĐ</p>
                 <p className="font-bold uppercase mb-16">ĐỘI TRƯỞNG</p>
@@ -190,10 +205,10 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </div>
       </div>
 
-      {/* APPROVAL */}
-      <div className="mt-10 border-t border-black pt-4 text-[11pt]">
+      {/* PHÊ DUYỆT */}
+      <div className="mt-8 border-t border-black pt-4 text-[12pt] px-2">
           <p className="font-bold italic">Ý kiến phê duyệt của Giám đốc Đặng Hoài Bắc:</p>
-          <div className="h-20"></div>
+          <div className="h-24"></div>
       </div>
     </div>
   );
@@ -322,7 +337,7 @@ export default function App() {
       const now = new Date().toLocaleString('vi-VN');
       setLastSyncTime(now);
       localStorage.setItem('evn_last_sync', now);
-      showStatus(`Đã cập nhật dữ liệu!`, "success");
+      showStatus(`Đã tải dữ liệu mới nhất!`, "success");
     } catch (e) {
       showStatus("Lỗi kết nối Sheet!", "error");
     } finally {
@@ -342,7 +357,7 @@ export default function App() {
 
   const addToDispatch = () => {
     if (!sourceLoc.id || !destLoc.id || !selectedTransformer) {
-      alert("Vui lòng chọn đủ Nơi đi, Nơi đến và Máy!");
+      alert("Vui lòng chọn đầy đủ Nơi đi, Nơi đến và Máy!");
       return;
     }
     setDispatchCart([...dispatchCart, { 
@@ -364,10 +379,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 overflow-hidden">
       
-      {/* TRANG IN CHUẨN PC THUẬN AN */}
+      {/* TRANG IN ĐÃ FIX LỖI FONT TIẾNG VIỆT */}
       <DispatchPrintTemplate dispatchList={dispatchCart} metadata={metadata} />
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR NAVIGATION */}
       <div className="no-print w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col gap-8 shrink-0 shadow-2xl z-20">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20"><Zap className="w-6 h-6 text-white" /></div>
@@ -434,19 +449,19 @@ export default function App() {
           )}
 
           {activeTab === 'dispatch' && (
-            <div className="space-y-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-auto pb-10">
+            <div className="space-y-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-auto pb-10 px-1">
               <div className="flex flex-col gap-1">
-                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic">Phiếu Điều Động MBT</h2>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic font-black">Phiếu Điều Động MBT</h2>
                 <p className="text-slate-500 font-medium">Lập lệnh điều động theo đúng quy chuẩn PC Thuận An.</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-fit">
                 {/* CẤU HÌNH VĂN BẢN */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1">
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1 h-fit">
                   <h3 className="font-bold text-slate-800 flex items-center gap-2"><Info className="w-5 h-5 text-blue-500"/> Nội dung văn bản</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">V/v điều động MBT để:</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">V/v điều động MBT để:</label>
                       <input 
                         type="text" value={metadata.reason} 
                         onChange={(e) => setMetadata({...metadata, reason: e.target.value})}
@@ -455,11 +470,11 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Căn cứ văn bản:</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Căn cứ văn bản:</label>
                       <textarea 
-                        rows="4" value={metadata.grounds}
+                        rows="5" value={metadata.grounds}
                         onChange={(e) => setMetadata({...metadata, grounds: e.target.value})}
-                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none mt-1"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none mt-1 leading-relaxed"
                         placeholder="Nhập số văn bản và nội dung căn cứ..."
                       />
                     </div>
@@ -467,12 +482,12 @@ export default function App() {
                 </div>
 
                 {/* FORM CHỌN MÁY */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1">
-                  <h3 className="font-bold text-blue-600 flex items-center gap-2"><Plus className="w-5 h-5"/> Chọn MBT Điều động</h3>
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1 h-fit">
+                  <h3 className="font-bold text-blue-600 flex items-center gap-2 uppercase text-sm tracking-widest"><Plus className="w-5 h-5"/> Thêm máy điều động</h3>
                   
                   <div className="space-y-3">
                     <select 
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
                       onChange={(e) => {
                         const val = e.target.value;
                         if (val === 'KHO') setSourceLoc({ type: 'KHO', id: 'KHO', name: 'Kho Thuận An' });
@@ -483,14 +498,14 @@ export default function App() {
                         setSelectedTransformer(null);
                       }}
                     >
-                      <option value="">-- Chọn Nơi Đi --</option>
+                      <option value="">-- Chọn Nơi Đi (Nguồn) --</option>
                       <option value="KHO">KHO THIẾT BỊ (Kho hiện tại)</option>
                       {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
                     </select>
 
                     <select 
                       disabled={!sourceLoc.id}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium disabled:opacity-40"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold disabled:opacity-40"
                       value={selectedTransformer ? (selectedTransformer['Số máy'] || selectedTransformer['SERIAL NUMBER']) : ""}
                       onChange={(e) => {
                         const mbt = availableTransformers.find(m => (m['Số máy'] || m['SERIAL NUMBER']) === e.target.value);
@@ -506,7 +521,7 @@ export default function App() {
                     </select>
 
                     <select 
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
                       onChange={(e) => {
                         const val = e.target.value;
                         if (val === 'KHO') setDestLoc({ type: 'KHO', id: 'KHO', name: 'Kho Thuận An' });
@@ -516,27 +531,27 @@ export default function App() {
                         } else setDestLoc({ type: '', id: '', name: '' });
                       }}
                     >
-                      <option value="">-- Chọn Nơi Đến --</option>
+                      <option value="">-- Chọn Nơi Đến (Đích) --</option>
                       <option value="KHO">VỀ KHO THIẾT BỊ</option>
                       {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
                     </select>
                   </div>
 
-                  <button onClick={addToDispatch} className="w-full bg-blue-600 text-white p-3 rounded-2xl font-bold hover:bg-blue-700 shadow-lg active:scale-95 transition-all">
-                    Thêm vào phiếu
+                  <button onClick={addToDispatch} className="w-full bg-blue-600 text-white p-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg active:scale-95 transition-all text-xs">
+                    Thêm vào danh sách
                   </button>
                 </div>
 
-                {/* DANH SÁCH MBT ĐÃ CHỌN */}
-                <div className="bg-slate-800 text-white p-6 rounded-3xl shadow-xl flex flex-col h-full lg:col-span-1 min-h-[400px]">
+                {/* DANH SÁCH LỆNH */}
+                <div className="bg-slate-800 text-white p-6 rounded-3xl shadow-xl flex flex-col h-full lg:col-span-1 min-h-[450px]">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-widest"><FileText className="w-4 h-4 text-emerald-400"/> MBT Đã chọn</h3>
+                    <h3 className="font-bold flex items-center gap-2 text-xs uppercase tracking-widest"><FileText className="w-4 h-4 text-emerald-400"/> Phiếu điều động</h3>
                     <button 
                       onClick={() => window.print()}
                       disabled={dispatchCart.length === 0}
-                      className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-emerald-600 transition-all disabled:opacity-30 shadow-lg"
+                      className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 hover:bg-emerald-600 transition-all disabled:opacity-30 shadow-lg shadow-emerald-500/20 uppercase"
                     >
-                      <Printer className="w-4 h-4"/> IN PHIẾU
+                      <Printer className="w-4 h-4"/> Xuất Phiếu
                     </button>
                   </div>
 
@@ -544,17 +559,17 @@ export default function App() {
                     {dispatchCart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-slate-500 py-10 opacity-30">
                         <ArrowLeftRight className="w-12 h-12 mb-2"/>
-                        <p className="text-xs font-bold uppercase tracking-widest text-center">Chưa có máy nào<br/>trong danh sách</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-center">Chưa có máy nào<br/>được chọn</p>
                       </div>
                     ) : (
                       dispatchCart.map((item, i) => (
                         <div key={i} className="bg-slate-700/40 p-4 rounded-2xl border border-slate-600/30 flex justify-between items-center animate-in slide-in-from-right duration-300">
                           <div className="flex-1 overflow-hidden">
-                            <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1 truncate">
+                            <div className="text-[10pt] font-black text-emerald-400 uppercase tracking-widest mb-1 truncate">
                               {item.source.name} ➔ {item.destination.name}
                             </div>
                             <div className="text-sm font-black truncate">Số máy: {item.transformer['Số máy'] || item.transformer['SERIAL NUMBER']}</div>
-                            <div className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter">CS: {item.transformer['Công suất'] || item.transformer['CS MBT']} kVA | {item.transformer['Hiệu máy'] || 'N/A'}</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">CS: {item.transformer['Công suất'] || item.transformer['CS MBT']} kVA | {item.transformer['Hiệu máy'] || 'N/A'}</div>
                           </div>
                           <button onClick={() => setDispatchCart(dispatchCart.filter((_, idx) => idx !== i))} className="p-2 ml-2 text-slate-400 hover:text-red-400 transition-colors">
                             <Trash2 className="w-4 h-4"/>
@@ -565,7 +580,7 @@ export default function App() {
                   </div>
                   
                   {dispatchCart.length > 0 && (
-                    <button onClick={() => setDispatchCart([])} className="mt-4 text-[10px] text-slate-400 hover:text-red-400 font-bold uppercase tracking-widest text-center transition-colors">Hủy toàn bộ</button>
+                    <button onClick={() => setDispatchCart([])} className="mt-4 text-[10px] text-slate-500 hover:text-red-400 font-black uppercase tracking-widest text-center transition-colors">Hủy toàn bộ phiếu</button>
                   )}
                 </div>
               </div>
@@ -573,7 +588,7 @@ export default function App() {
           )}
 
           {activeTab !== 'dashboard' && activeTab !== 'dispatch' && (
-            <div className="flex-1 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex-1 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 px-1">
               <DataTable 
                 data={data[activeTab]} 
                 icon={navItems.find(n => n.id === activeTab).icon}
