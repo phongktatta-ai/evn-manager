@@ -222,7 +222,10 @@ export default function App() {
       <div className="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col gap-8 shrink-0 shadow-2xl z-20">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20"><Zap className="w-6 h-6 text-white" /></div>
-          <span className="text-xl font-black tracking-tight uppercase">EVN<span className="text-blue-400">Manager</span></span>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold tracking-tight uppercase leading-tight">Phòng KTAT</span>
+            <span className="text-xs font-medium text-blue-400 uppercase tracking-wider">PC Thuận An</span>
+          </div>
         </div>
         <nav className="flex flex-col gap-2">
           {navItems.map(item => (
