@@ -1,12 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LayoutDashboard, Zap, Activity, Warehouse, 
-  Search, ChevronLeft, ChevronRight, DownloadCloud, 
-  Loader2, Lock, CheckCircle2, XCircle
+  Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
+  DownloadCloud, Loader2, CheckCircle2, XCircle, RefreshCw, Clock
 } from 'lucide-react';
 
+// Cấu hình đường dẫn cố định cho toàn ứng dụng
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-encHUhE36iw-nruN75SodCSS6iiDh7d/edit?gid=767831174#gid=767831174";
+
 /**
- * Hàm phân tích chuỗi CSV thành mảng dữ liệu 2 chiều
+ * Tiện ích phân tích CSV
  */
 const parseCSV = (text) => {
   const result = [];
@@ -25,7 +28,7 @@ const parseCSV = (text) => {
 };
 
 /**
- * Hàm xử lý mảng thô: Lọc bỏ lỗi công thức và dòng rác
+ * Xử lý dữ liệu thô: Lọc trạm duy nhất và loại bỏ dòng rác
  */
 const processRawArray = (rawRows, keyword) => {
   let headerIndex = -1;
@@ -46,7 +49,6 @@ const processRawArray = (rawRows, keyword) => {
   if (idColIdx === -1) idColIdx = headers.findIndex(h => normalize(h).includes(normalize(keyword)));
   
   const nameColIdx = headers.findIndex(h => normalize(h).includes("TENDUKIEN") || normalize(h).includes("TENTBT"));
-  const sttColIdx = headers.findIndex(h => normalize(h).includes("STTTBT") || normalize(h) === "STT");
 
   if (idColIdx === -1) idColIdx = 0;
 
@@ -54,23 +56,20 @@ const processRawArray = (rawRows, keyword) => {
     .filter(row => {
       const idVal = String(row[idColIdx] || "").trim();
       const nameVal = nameColIdx !== -1 ? String(row[nameColIdx] || "").trim() : "Valid";
-      
       if (!idVal || idVal === "" || idVal === "0" || idVal.startsWith("#")) return false;
       if (!nameVal || nameVal === "" || nameVal.startsWith("#")) return false;
-
       const dataCols = row.filter(c => String(c).trim() !== "" && !String(c).includes("#"));
       return dataCols.length >= 4;
     })
     .map(row => {
       let obj = {};
       headers.forEach((h, idx) => { if (h) obj[h] = row[idx] ? String(row[idx]).trim() : ""; });
-      if (sttColIdx !== -1) obj['STT_INTERNAL'] = row[sttColIdx];
       return obj;
     });
 };
 
 /**
- * Component Bảng hiển thị dữ liệu
+ * Component Bảng dữ liệu hỗ trợ tạo STT động và điều hướng nhanh
  */
 const DataTable = ({ data, columns, title, icon: Icon }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,7 +98,7 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" placeholder="Tìm kiếm nhanh..." 
-            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
@@ -116,21 +115,24 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
               <tr key={i} className="border-b hover:bg-blue-50/50 transition-colors">
                 {columns.map(col => (
                   <td key={col.key} className="px-4 py-3 text-slate-600 whitespace-nowrap max-w-[250px] truncate" title={row[col.key]}>
-                    {col.key === 'STT_DISPLAY' ? (row['STT TBT'] || row['STT_INTERNAL'] || row['STT']) : (row[col.key] || '-')}
+                    {col.key === 'AUTO_STT' ? (i + 1 + (currentPage - 1) * rowsPerPage) : (row[col.key] || '-')}
                   </td>
                 ))}
               </tr>
             )) : (
-              <tr><td colSpan={columns.length} className="p-10 text-center text-slate-400 italic">Không tìm thấy dữ liệu</td></tr>
+              <tr><td colSpan={columns.length} className="p-10 text-center text-slate-400 italic font-medium uppercase">Không tìm thấy dữ liệu</td></tr>
             )}
           </tbody>
         </table>
       </div>
       <div className="p-4 border-t flex justify-between items-center bg-slate-50 text-xs font-medium text-slate-500">
-        <span>Trang {currentPage} / {totalPages || 1}</span>
-        <div className="flex gap-2">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95"><ChevronLeft className="w-4 h-4"/></button>
-          <button disabled={currentPage >= totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95"><ChevronRight className="w-4 h-4"/></button>
+        <span className="hidden sm:inline italic">Trang {currentPage} / {totalPages || 1}</span>
+        <span className="sm:hidden">{currentPage}/{totalPages || 1}</span>
+        <div className="flex gap-1 sm:gap-2">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95 transition-all"><ChevronsLeft className="w-4 h-4"/></button>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95 transition-all"><ChevronLeft className="w-4 h-4"/></button>
+          <button disabled={currentPage >= totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95 transition-all"><ChevronRight className="w-4 h-4"/></button>
+          <button disabled={currentPage >= totalPages || totalPages === 0} onClick={() => setCurrentPage(totalPages)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95 transition-all"><ChevronsRight className="w-4 h-4"/></button>
         </div>
       </div>
     </div>
@@ -138,42 +140,35 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
 };
 
 export default function App() {
-  // ĐƯỜNG DẪN MẶC ĐỊNH CỦA BẠN
-  const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-encHUhE36iw-nruN75SodCSS6iiDh7d/edit?gid=767831174#gid=767831174";
-  
   const [activeTab, setActiveTab] = useState('dashboard');
   const [data, setData] = useState({ tbt: [], mbt: [], kho: [] });
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' });
-  const [sheetUrl, setSheetUrl] = useState(localStorage.getItem('evn_url') || DEFAULT_SHEET_URL);
-  const [isLocked, setIsLocked] = useState(true);
+  // Khởi tạo thời gian đồng bộ gần nhất từ bộ nhớ máy
+  const [lastSyncTime, setLastSyncTime] = useState(localStorage.getItem('evn_last_sync') || 'Chưa có dữ liệu');
 
   const showStatus = (text, type = 'info') => {
     setStatusMsg({ text, type });
     if (type !== 'loading') {
-      setTimeout(() => setStatusMsg({ text: '', type: '' }), 4000);
+      setTimeout(() => setStatusMsg({ text: '', type: '' }), 3000);
     }
   };
 
   /**
-   * Hàm lấy dữ liệu từ Google Sheets
+   * Đồng bộ dữ liệu chính
    */
-  const fetchData = async (targetUrl = sheetUrl) => {
-    if (!targetUrl) return;
+  const fetchData = async () => {
     setLoading(true);
     showStatus("Đang đồng bộ dữ liệu...", "loading");
     
     try {
-      const idMatch = targetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      if (!idMatch) throw new Error("Link Sheet không hợp lệ!");
+      const idMatch = GOOGLE_SHEET_URL.match(/\/d\/([a-zA-Z0-9-_]+)/);
       const id = idMatch[1];
-      localStorage.setItem('evn_url', targetUrl);
 
       const fetchTab = async (name, key) => {
         const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
         const res = await fetch(url);
         const text = await res.text();
-        if (text.includes('<html')) throw new Error(`Cần cấp quyền chia sẻ cho trang "${name}"`);
         return processRawArray(parseCSV(text), key);
       };
 
@@ -183,7 +178,6 @@ export default function App() {
         fetchTab('KHO', 'Số máy')
       ]);
 
-      // Lọc trạm duy nhất (khớp đúng 5910 dòng đầu tiên của mỗi TBTID)
       const uniqueTbt = [];
       const seenIds = new Set();
       rawTbt.forEach(item => {
@@ -194,23 +188,29 @@ export default function App() {
       });
 
       setData({ tbt: uniqueTbt, mbt, kho });
-      showStatus(`Đã cập nhật ${uniqueTbt.length} trạm!`, "success");
+      
+      // Cập nhật và lưu thời gian đồng bộ
+      const now = new Date().toLocaleString('vi-VN', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      });
+      setLastSyncTime(now);
+      localStorage.setItem('evn_last_sync', now);
+
+      showStatus(`Cập nhật thành công!`, "success");
     } catch (e) {
-      showStatus(e.message, "error");
+      showStatus("Lỗi kết nối!", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * TỰ ĐỘNG ĐỒNG BỘ KHI MỞ TRANG
-   */
   useEffect(() => {
     fetchData();
   }, []);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Hệ Thống', icon: LayoutDashboard },
     { id: 'tbt', label: 'Trạm (TBT)', icon: Zap },
     { id: 'mbt', label: 'Máy (MBT)', icon: Activity },
     { id: 'kho', label: 'Kho thiết bị', icon: Warehouse },
@@ -218,7 +218,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900">
-      {/* SIDEBAR NAVIGATION */}
+      {/* SIDEBAR */}
       <div className="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col gap-8 shrink-0 shadow-2xl z-20">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20"><Zap className="w-6 h-6 text-white" /></div>
@@ -252,31 +252,15 @@ export default function App() {
 
         {activeTab === 'dashboard' && (
           <div className="space-y-6 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-top duration-700">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic">Hệ thống quản lý</h2>
-              <p className="text-slate-500 font-medium">Tự động đồng bộ từ Google Sheets mỗi khi mở trang.</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <label className="text-[10px] font-bold text-slate-400 block uppercase tracking-widest italic">Link mặc định:</label>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <input 
-                    type="text" placeholder="Dán link Google Sheet..." 
-                    className="w-full pl-4 pr-10 py-3 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 shadow-inner"
-                    value={sheetUrl} onChange={e => setSheetUrl(e.target.value)} disabled={isLocked}
-                  />
-                  {isLocked && <Lock className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />}
-                </div>
-                <button 
-                  onClick={() => fetchData()} disabled={loading || !sheetUrl}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20 active:scale-95"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <DownloadCloud className="w-5 h-5" />} 
-                  Làm mới
-                </button>
-              </div>
-              {isLocked && <button onClick={() => setIsLocked(false)} className="text-xs text-blue-600 font-bold hover:underline">Thay đổi đường dẫn khác</button>}
+            <div className="flex justify-between items-center">
+              <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic">Bảng thống kê</h2>
+              <button 
+                onClick={fetchData} disabled={loading}
+                className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 transition-all active:scale-95 text-slate-600 group"
+                title="Đồng bộ lại"
+              >
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin text-blue-600' : 'group-hover:text-blue-500'}`} />
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -295,13 +279,13 @@ export default function App() {
               ))}
             </div>
 
-            <div className="bg-blue-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-blue-500/30">
-               <div className="relative z-10 space-y-4">
-                  <div className="flex items-center gap-2 text-blue-200 font-bold text-sm uppercase">
-                    <CheckCircle2 className="w-4 h-4"/> Đã khớp 5910 Trạm
+            {/* HIỂN THỊ THỜI GIAN ĐỒNG BỘ GẦN NHẤT */}
+            <div className="bg-blue-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+               <div className="relative z-10 space-y-2">
+                  <div className="flex items-center gap-2 text-blue-200 font-bold text-xs uppercase tracking-widest">
+                    <Clock className="w-4 h-4"/> Đồng bộ gần nhất
                   </div>
-                  <h3 className="text-2xl font-black italic">Đã sẵn sàng!</h3>
-                  <p className="text-blue-100 text-sm max-w-md leading-relaxed">Hệ thống đã tự động lọc các mã trạm trùng lặp và sử dụng dữ liệu <b>Tên Dự Kiến</b> làm tên trạm chính. Bạn có thể tra cứu ngay.</p>
+                  <h3 className="text-2xl font-black italic tracking-tight">{lastSyncTime}</h3>
                </div>
                <Zap className="absolute -right-6 -bottom-6 w-40 h-40 text-blue-500 opacity-20 rotate-12" />
             </div>
@@ -315,13 +299,18 @@ export default function App() {
               icon={navItems.find(n => n.id === activeTab).icon}
               title={`Danh sách: ${navItems.find(n => n.id === activeTab).label}`}
               columns={activeTab === 'tbt' ? [
-                { key: 'STT_DISPLAY', label: 'STT' }, 
+                { key: 'AUTO_STT', label: 'STT' }, 
                 { key: 'TBTID', label: 'Mã Trạm' }, 
                 { key: 'TÊN DỰ KIẾN', label: 'Tên Trạm' }, 
                 { key: 'TỔNG CS TBT', label: 'Công Suất' }, 
                 { key: 'KIỂU TRẠM', label: 'Kiểu' }
               ] : [
-                { key: 'Số máy', label: 'Số Máy' }, { key: 'Hiệu máy', label: 'Hiệu Máy' }, { key: 'Công suất', label: 'Công Suất' }, { key: 'Vị trí', label: 'Vị trí hiện tại' }, { key: 'Tình trạng', label: 'Trạng thái' }
+                { key: 'AUTO_STT', label: 'STT' },
+                { key: 'Số máy', label: 'Số Máy' }, 
+                { key: 'Hiệu máy', label: 'Hiệu Máy' }, 
+                { key: 'Công suất', label: 'Công Suất' }, 
+                { key: 'Vị trí', label: 'Vị trí' }, 
+                { key: 'Tình trạng', label: 'Trạng thái' }
               ]}
             />
           </div>
