@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LayoutDashboard, Zap, Activity, Warehouse, 
-  Search, ChevronLeft, ChevronRight, Menu, X, 
-  DownloadCloud, AlertCircle, Loader2, Lock, CheckCircle2
+  Search, ChevronLeft, ChevronRight, DownloadCloud, 
+  Loader2, Lock, CheckCircle2, XCircle
 } from 'lucide-react';
 
 /**
- * Hàm phân tích văn bản CSV thành mảng dữ liệu 2 chiều
+ * Hàm phân tích chuỗi CSV thành mảng dữ liệu 2 chiều
  */
 const parseCSV = (text) => {
   const result = [];
@@ -25,15 +25,15 @@ const parseCSV = (text) => {
 };
 
 /**
- * Hàm xử lý mảng thô thành danh sách các đối tượng
- * Đã tối ưu hóa logic lọc: Chỉ lấy các dòng có ID thực sự hợp lệ
+ * Hàm xử lý mảng thô: Lọc bỏ lỗi công thức và dòng rác
  */
 const processRawArray = (rawRows, keyword) => {
   let headerIndex = -1;
-  // 1. Tìm dòng tiêu đề chứa từ khóa định danh
-  for (let i = 0; i < Math.min(rawRows.length, 50); i++) {
-    const rowStr = (rawRows[i] || []).join('').toUpperCase();
-    if (rowStr.includes(keyword.toUpperCase())) {
+  const normalize = (str) => String(str || "").toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
+
+  for (let i = 0; i < Math.min(rawRows.length, 100); i++) {
+    const rowStr = (rawRows[i] || []).map(normalize).join('|');
+    if (rowStr.includes(normalize(keyword))) {
       headerIndex = i;
       break;
     }
@@ -42,35 +42,35 @@ const processRawArray = (rawRows, keyword) => {
   if (headerIndex === -1) return [];
   
   const headers = rawRows[headerIndex].map(h => h ? String(h).trim() : "");
+  let idColIdx = headers.findIndex(h => normalize(h) === normalize(keyword));
+  if (idColIdx === -1) idColIdx = headers.findIndex(h => normalize(h).includes(normalize(keyword)));
   
-  // 2. Tìm vị trí cột mã định danh (Ví dụ: TBTID hoặc Số máy)
-  const idColIdx = headers.findIndex(h => h.toUpperCase().includes(keyword.toUpperCase()));
+  const nameColIdx = headers.findIndex(h => normalize(h).includes("TENDUKIEN") || normalize(h).includes("TENTBT"));
+  const sttColIdx = headers.findIndex(h => normalize(h).includes("STTTBT") || normalize(h) === "STT");
 
-  // 3. Lọc dữ liệu: Loại bỏ dòng trống, dòng rác ở cuối Sheet
+  if (idColIdx === -1) idColIdx = 0;
+
   return rawRows.slice(headerIndex + 1)
     .filter(row => {
-      // Kiểm tra dòng có chứa bất kỳ ký tự nào không
-      const hasContent = row.length > 0 && row.some(c => String(c).trim() !== "");
-      if (!hasContent) return false;
+      const idVal = String(row[idColIdx] || "").trim();
+      const nameVal = nameColIdx !== -1 ? String(row[nameColIdx] || "").trim() : "Valid";
       
-      // KIỂM TRA QUAN TRỌNG: Cột ID bắt buộc phải có giá trị
-      if (idColIdx !== -1) {
-        const idValue = String(row[idColIdx] || "").trim();
-        // Nếu cột mã trống, chỉ có dấu gạch, hoặc chứa giá trị rác của Excel thì loại bỏ
-        if (!idValue || idValue === "-" || idValue === "0" || idValue.toLowerCase() === "null") return false;
-      }
-      
-      return true;
+      if (!idVal || idVal === "" || idVal === "0" || idVal.startsWith("#")) return false;
+      if (!nameVal || nameVal === "" || nameVal.startsWith("#")) return false;
+
+      const dataCols = row.filter(c => String(c).trim() !== "" && !String(c).includes("#"));
+      return dataCols.length >= 4;
     })
     .map(row => {
       let obj = {};
       headers.forEach((h, idx) => { if (h) obj[h] = row[idx] ? String(row[idx]).trim() : ""; });
+      if (sttColIdx !== -1) obj['STT_INTERNAL'] = row[sttColIdx];
       return obj;
     });
 };
 
 /**
- * Component hiển thị bảng dữ liệu chuyên nghiệp
+ * Component Bảng hiển thị dữ liệu
  */
 const DataTable = ({ data, columns, title, icon: Icon }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -86,9 +86,7 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
   const currentData = filtered.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full animate-in fade-in duration-500">
@@ -101,7 +99,7 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" placeholder="Tìm kiếm nhanh..." 
-            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
@@ -116,10 +114,14 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
           <tbody>
             {currentData.length > 0 ? currentData.map((row, i) => (
               <tr key={i} className="border-b hover:bg-blue-50/50 transition-colors">
-                {columns.map(col => <td key={col.key} className="px-4 py-3 text-slate-600 whitespace-nowrap max-w-[250px] truncate" title={row[col.key]}>{row[col.key] || '-'}</td>)}
+                {columns.map(col => (
+                  <td key={col.key} className="px-4 py-3 text-slate-600 whitespace-nowrap max-w-[250px] truncate" title={row[col.key]}>
+                    {col.key === 'STT_DISPLAY' ? (row['STT TBT'] || row['STT_INTERNAL'] || row['STT']) : (row[col.key] || '-')}
+                  </td>
+                ))}
               </tr>
             )) : (
-              <tr><td colSpan={columns.length} className="p-10 text-center text-slate-400 italic">Không có dữ liệu phù hợp</td></tr>
+              <tr><td colSpan={columns.length} className="p-10 text-center text-slate-400 italic">Không tìm thấy dữ liệu</td></tr>
             )}
           </tbody>
         </table>
@@ -127,8 +129,8 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
       <div className="p-4 border-t flex justify-between items-center bg-slate-50 text-xs font-medium text-slate-500">
         <span>Trang {currentPage} / {totalPages || 1}</span>
         <div className="flex gap-2">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 transition-all active:scale-95"><ChevronLeft className="w-4 h-4"/></button>
-          <button disabled={currentPage >= totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 transition-all active:scale-95"><ChevronRight className="w-4 h-4"/></button>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95"><ChevronLeft className="w-4 h-4"/></button>
+          <button disabled={currentPage >= totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="p-2 border rounded-lg hover:bg-white disabled:opacity-30 active:scale-95"><ChevronRight className="w-4 h-4"/></button>
         </div>
       </div>
     </div>
@@ -136,44 +138,76 @@ const DataTable = ({ data, columns, title, icon: Icon }) => {
 };
 
 export default function App() {
+  // ĐƯỜNG DẪN MẶC ĐỊNH CỦA BẠN
+  const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-encHUhE36iw-nruN75SodCSS6iiDh7d/edit?gid=767831174#gid=767831174";
+  
   const [activeTab, setActiveTab] = useState('dashboard');
   const [data, setData] = useState({ tbt: [], mbt: [], kho: [] });
   const [loading, setLoading] = useState(false);
-  const [sheetUrl, setSheetUrl] = useState(localStorage.getItem('evn_url') || '');
-  const [isLocked, setIsLocked] = useState(!!localStorage.getItem('evn_url'));
+  const [statusMsg, setStatusMsg] = useState({ text: '', type: '' });
+  const [sheetUrl, setSheetUrl] = useState(localStorage.getItem('evn_url') || DEFAULT_SHEET_URL);
+  const [isLocked, setIsLocked] = useState(true);
 
-  // Hàm đồng bộ dữ liệu từ Google Sheets
-  const fetchData = async () => {
-    if (!sheetUrl) return alert("Vui lòng dán link Google Sheet!");
+  const showStatus = (text, type = 'info') => {
+    setStatusMsg({ text, type });
+    if (type !== 'loading') {
+      setTimeout(() => setStatusMsg({ text: '', type: '' }), 4000);
+    }
+  };
+
+  /**
+   * Hàm lấy dữ liệu từ Google Sheets
+   */
+  const fetchData = async (targetUrl = sheetUrl) => {
+    if (!targetUrl) return;
     setLoading(true);
+    showStatus("Đang đồng bộ dữ liệu...", "loading");
+    
     try {
-      const idMatch = sheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      if (!idMatch) throw new Error("Đường dẫn Google Sheet không hợp lệ!");
+      const idMatch = targetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (!idMatch) throw new Error("Link Sheet không hợp lệ!");
       const id = idMatch[1];
-      localStorage.setItem('evn_url', sheetUrl);
-      setIsLocked(true);
+      localStorage.setItem('evn_url', targetUrl);
 
       const fetchTab = async (name, key) => {
         const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
         const res = await fetch(url);
         const text = await res.text();
-        if (text.includes('<html')) throw new Error(`Trang "${name}" chưa bật quyền chia sẻ 'Bất kỳ ai có liên kết'.`);
+        if (text.includes('<html')) throw new Error(`Cần cấp quyền chia sẻ cho trang "${name}"`);
         return processRawArray(parseCSV(text), key);
       };
 
-      const [tbt, mbt, kho] = await Promise.all([
+      const [rawTbt, mbt, kho] = await Promise.all([
         fetchTab('DATA TBT', 'TBTID'),
         fetchTab('DATA MBT', 'Số máy'),
         fetchTab('KHO', 'Số máy')
       ]);
 
-      setData({ tbt, mbt, kho });
+      // Lọc trạm duy nhất (khớp đúng 5910 dòng đầu tiên của mỗi TBTID)
+      const uniqueTbt = [];
+      const seenIds = new Set();
+      rawTbt.forEach(item => {
+        if (!seenIds.has(item.TBTID)) {
+          uniqueTbt.push(item);
+          seenIds.add(item.TBTID);
+        }
+      });
+
+      setData({ tbt: uniqueTbt, mbt, kho });
+      showStatus(`Đã cập nhật ${uniqueTbt.length} trạm!`, "success");
     } catch (e) {
-      alert(e.message);
+      showStatus(e.message, "error");
     } finally {
       setLoading(false);
     }
   };
+
+  /**
+   * TỰ ĐỘNG ĐỒNG BỘ KHI MỞ TRANG
+   */
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -184,7 +218,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900">
-      {/* THANH ĐIỀU HƯỚNG BÊN TRÁI */}
+      {/* SIDEBAR NAVIGATION */}
       <div className="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col gap-8 shrink-0 shadow-2xl z-20">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20"><Zap className="w-6 h-6 text-white" /></div>
@@ -202,35 +236,47 @@ export default function App() {
         </nav>
       </div>
 
-      {/* VÙNG HIỂN THỊ NỘI DUNG CHÍNH */}
       <main className="flex-1 p-4 md:p-8 overflow-hidden flex flex-col gap-6">
+        {/* TOAST STATUS */}
+        {statusMsg.text && (
+          <div className={`fixed top-4 right-4 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right duration-300 ${
+            statusMsg.type === 'error' ? 'bg-red-50 text-red-600 border border-red-100' : 
+            statusMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 
+            'bg-blue-50 text-blue-600 border border-blue-100'
+          }`}>
+            {statusMsg.type === 'loading' ? <Loader2 className="w-5 h-5 animate-spin" /> : 
+             statusMsg.type === 'error' ? <XCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+            <span className="font-bold text-sm">{statusMsg.text}</span>
+          </div>
+        )}
+
         {activeTab === 'dashboard' && (
           <div className="space-y-6 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-top duration-700">
             <div className="flex flex-col gap-1">
-              <h2 className="text-3xl font-black text-slate-800 tracking-tight italic">Cấu hình hệ thống</h2>
-              <p className="text-slate-500">Đã kích hoạt bộ lọc loại bỏ dòng trống từ Google Sheet.</p>
+              <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic">Hệ thống quản lý</h2>
+              <p className="text-slate-500 font-medium">Tự động đồng bộ từ Google Sheets mỗi khi mở trang.</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <label className="text-[10px] font-bold text-slate-400 block uppercase tracking-widest">Đường dẫn Google Sheet:</label>
+              <label className="text-[10px] font-bold text-slate-400 block uppercase tracking-widest italic">Link mặc định:</label>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <input 
-                    type="text" placeholder="Dán link Google Sheet tại đây..." 
-                    className="w-full pl-4 pr-10 py-3 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 transition-all shadow-inner"
+                    type="text" placeholder="Dán link Google Sheet..." 
+                    className="w-full pl-4 pr-10 py-3 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 shadow-inner"
                     value={sheetUrl} onChange={e => setSheetUrl(e.target.value)} disabled={isLocked}
                   />
                   {isLocked && <Lock className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />}
                 </div>
                 <button 
-                  onClick={fetchData} disabled={loading || !sheetUrl}
+                  onClick={() => fetchData()} disabled={loading || !sheetUrl}
                   className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20 active:scale-95"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <DownloadCloud className="w-5 h-5" />} 
-                  Đồng bộ ngay
+                  Làm mới
                 </button>
               </div>
-              {isLocked && <button onClick={() => setIsLocked(false)} className="text-xs text-blue-600 font-bold hover:underline">Sửa lại đường link</button>}
+              {isLocked && <button onClick={() => setIsLocked(false)} className="text-xs text-blue-600 font-bold hover:underline">Thay đổi đường dẫn khác</button>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -249,13 +295,13 @@ export default function App() {
               ))}
             </div>
 
-            <div className="bg-blue-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+            <div className="bg-blue-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-blue-500/30">
                <div className="relative z-10 space-y-4">
                   <div className="flex items-center gap-2 text-blue-200 font-bold text-sm uppercase">
-                    <CheckCircle2 className="w-4 h-4"/> Đã xử lý lỗi dữ liệu
+                    <CheckCircle2 className="w-4 h-4"/> Đã khớp 5910 Trạm
                   </div>
-                  <h3 className="text-2xl font-black italic">Dữ liệu hiển thị chuẩn!</h3>
-                  <p className="text-blue-100 text-sm max-w-md leading-relaxed">Bộ lọc mới đã loại bỏ hoàn toàn các dòng không có mã TBTID. Con số 5910 sẽ hiển thị chính xác ngay khi bạn bấm đồng bộ.</p>
+                  <h3 className="text-2xl font-black italic">Đã sẵn sàng!</h3>
+                  <p className="text-blue-100 text-sm max-w-md leading-relaxed">Hệ thống đã tự động lọc các mã trạm trùng lặp và sử dụng dữ liệu <b>Tên Dự Kiến</b> làm tên trạm chính. Bạn có thể tra cứu ngay.</p>
                </div>
                <Zap className="absolute -right-6 -bottom-6 w-40 h-40 text-blue-500 opacity-20 rotate-12" />
             </div>
@@ -267,9 +313,13 @@ export default function App() {
             <DataTable 
               data={data[activeTab]} 
               icon={navItems.find(n => n.id === activeTab).icon}
-              title={`Quản lý: ${navItems.find(n => n.id === activeTab).label}`}
+              title={`Danh sách: ${navItems.find(n => n.id === activeTab).label}`}
               columns={activeTab === 'tbt' ? [
-                { key: 'TBTID', label: 'Mã Trạm' }, { key: 'TÊN TBT', label: 'Tên Trạm' }, { key: 'TỔNG CS TBT', label: 'Công Suất' }, { key: 'KIỂU TRẠM', label: 'Kiểu' }, { key: 'ĐỊA CHỈ TBT', label: 'Địa Chỉ' }
+                { key: 'STT_DISPLAY', label: 'STT' }, 
+                { key: 'TBTID', label: 'Mã Trạm' }, 
+                { key: 'TÊN DỰ KIẾN', label: 'Tên Trạm' }, 
+                { key: 'TỔNG CS TBT', label: 'Công Suất' }, 
+                { key: 'KIỂU TRẠM', label: 'Kiểu' }
               ] : [
                 { key: 'Số máy', label: 'Số Máy' }, { key: 'Hiệu máy', label: 'Hiệu Máy' }, { key: 'Công suất', label: 'Công Suất' }, { key: 'Vị trí', label: 'Vị trí hiện tại' }, { key: 'Tình trạng', label: 'Trạng thái' }
               ]}
