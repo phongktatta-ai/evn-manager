@@ -214,10 +214,10 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </div>
       </div>
 
-      {/* PHÊ DUYỆT */}
-      <div className="mt-8 border-t border-black pt-4 text-[11.5pt] no-break">
+      {/* PHÊ DUYỆT (Đã xóa đường gạch ngang và căn giữa) */}
+      <div className="mt-12 text-[12pt] no-break text-center">
           <p className="font-bold italic">Ý kiến phê duyệt của Giám đốc Đặng Hoài Bắc:</p>
-          <div className="h-20"></div>
+          <div className="h-28"></div>
       </div>
     </div>
   );
