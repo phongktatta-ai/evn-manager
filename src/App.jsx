@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Zap, Activity, Warehouse, 
   Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   DownloadCloud, Loader2, CheckCircle2, XCircle, RefreshCw, Clock,
-  ArrowLeftRight, FileText, Plus, Trash2, Printer, Info, CheckSquare, Square
+  ArrowLeftRight, FileText, Plus, Trash2, Printer, Info, CheckSquare, Square, MapPin
 } from 'lucide-react';
 
 // Cấu hình đường dẫn cố định
@@ -79,15 +79,8 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
     <div className="print-only-container hidden print:block bg-white text-black p-0 m-0 w-full">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          /* Cấu hình khổ giấy nằm ngang và xóa lề để ẩn header/footer mặc định của trình duyệt */
-          @page { 
-            size: A4 landscape; 
-            margin: 0; 
-          }
-          body { 
-            margin: 0; 
-            -webkit-print-color-adjust: exact; 
-          }
+          @page { size: A4 landscape; margin: 0; }
+          body { margin: 0; -webkit-print-color-adjust: exact; }
           body * { visibility: hidden; }
           .print-only-container, .print-only-container * { 
             visibility: visible; 
@@ -96,13 +89,8 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
             text-rendering: optimizeLegibility;
           }
           .print-only-container { 
-            position: absolute; 
-            left: 0; 
-            top: 0; 
-            width: 100%; 
-            display: block !important; 
-            padding: 15mm 10mm 15mm 15mm; /* Thêm padding bù lại margin: 0 */
-            box-sizing: border-box;
+            position: absolute; left: 0; top: 0; width: 100%; display: block !important; 
+            padding: 15mm 10mm 15mm 15mm; box-sizing: border-box;
           }
           table { border-collapse: collapse; width: 100%; margin-top: 10px; }
           th, td { border: 1px solid black !important; padding: 6px 4px; vertical-align: middle; }
@@ -111,7 +99,6 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         .admin-line-height { line-height: 1.4; }
       `}} />
       
-      {/* QUỐC HIỆU & ĐƠN VỊ */}
       <div className="flex justify-between items-start mb-2 text-[11pt]">
         <div className="text-center w-[40%]">
           <h4 className="font-bold uppercase mb-0 leading-tight">CÔNG TY ĐIỆN LỰC THUẬN AN</h4>
@@ -128,20 +115,17 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </div>
       </div>
 
-      {/* TIÊU ĐỀ */}
       <div className="text-center mb-6 mt-6">
         <h2 className="text-[16pt] font-bold uppercase mb-1">PHIẾU CHỈ ĐỊNH MÁY BIẾN THẾ</h2>
         <p className="font-bold italic text-[12pt]">Kính gửi: Ông Giám đốc</p>
       </div>
 
-      {/* NỘI DUNG CĂN CỨ */}
       <div className="mb-4 text-[11.5pt] admin-line-height text-justify">
         <p className="mb-1">- Căn cứ quyết định số 4338/QĐ-EVNHCMC ngày 10/10/2023 về việc ban hành Quy định quản lý và hạch toán vật tư thiết bị áp dụng trong Tổng công ty Điện lực TP.HCM .</p>
         <p className="mb-1">- Căn cứ {metadata.grounds || 'văn bản số 150/QLLĐ ngày 12/01/2026 của Đội QLLĐ về việc xử lý quá tải TBT công cộng Chùa Bà Lái Thiêu 3.'}</p>
         <p>Để quản lý vật tư thiết bị theo đúng qui định, Phòng KT&AT lập phiếu điều động MBT với nội dung sau :</p>
       </div>
 
-      {/* BẢNG DỮ LIỆU CHÍNH (KHỔ NGANG) */}
       <table className="w-full text-center text-[10pt] mb-6">
         <thead className="font-bold bg-gray-50">
           <tr>
@@ -175,10 +159,9 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </tbody>
       </table>
 
-      {/* PHÂN CÔNG THỰC HIỆN */}
       <div className="mb-6 text-[11pt] admin-line-height">
         <h5 className="font-bold underline uppercase mb-2">Phân công thực hiện:</h5>
-        <div className="space-y-1">
+        <div className="space-y-1 text-justify">
           <p><span className="font-bold">Đội VHLĐ:</span> Thông báo thời gian mất điện khách hàng theo quy định; Bàn giao hiện trường, cấp phiếu công tác để Đội QLLĐ thi công thay MBT.</p>
           <p><span className="font-bold">Đội QLLĐ:</span> Thay và bàn giao MBT thu hồi với đánh giá đẩy đủ tình trạng ngoại quan (chì niêm: có/không; cosse cao, hạ MBT: đầy đủ/không đầy đủ) theo đúng qui định; Cập nhật hình ảnh trạm biến thế, máy biến thế lên chương trình PMIS theo văn bản số 145/KTAT; Lập phương án hoán chuyển TBT 400kVA non tải để có nguồn MBT 400kVA dự phòng tại kho, trước ngày 20/01/2026.</p>
           <p><span className="font-bold">Phòng KT&AT:</span> Cập nhật biến động công suất trạm biến thế, máy biến thế vào các chương trình QLKT liên quan; Quản lý số lượng, chủng loại MBA theo văn bản số 2567/EVNHCMC-KH ngày 11/7/2024 của Tổng công ty ĐL TP.HCM.</p>
@@ -189,7 +172,6 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </div>
       </div>
 
-      {/* CHỮ KÝ */}
       <div className="flex justify-between mt-4 text-[11pt] no-break">
         <div className="w-[25%]">
           <p className="font-bold underline mb-1">Nơi nhận:</p>
@@ -214,7 +196,6 @@ const DispatchPrintTemplate = ({ dispatchList, metadata }) => {
         </div>
       </div>
 
-      {/* PHÊ DUYỆT (Đã xóa đường gạch ngang và căn giữa) */}
       <div className="mt-12 text-[12pt] no-break text-center">
           <p className="font-bold italic">Ý kiến phê duyệt của Giám đốc Đặng Hoài Bắc:</p>
           <div className="h-28"></div>
@@ -309,9 +290,9 @@ export default function App() {
   // Trạng thái điều động
   const [dispatchCart, setDispatchCart] = useState([]);
   const [sourceLoc, setSourceLoc] = useState({ type: '', id: '', name: '' });
-  const [destLoc, setDestLoc] = useState({ type: '', id: '', name: '' });
-  // Chuyển sang state lưu danh sách các ID đã chọn thay vì 1 đối tượng duy nhất
-  const [selectedIds, setSelectedIds] = useState([]);
+  
+  // State quản lý việc chọn nơi đến cho từng máy: { [serial]: {id, name} }
+  const [machineDestinations, setMachineDestinations] = useState({});
 
   const showStatus = (text, type = 'info') => {
     setStatusMsg({ text, type });
@@ -365,24 +346,33 @@ export default function App() {
     return [];
   }, [sourceLoc, data]);
 
-  // Hàm toggle chọn máy
-  const toggleSelect = (mId) => {
-    setSelectedIds(prev => 
-      prev.includes(mId) ? prev.filter(id => id !== mId) : [...prev, mId]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === availableTransformers.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(availableTransformers.map(m => m['Số máy'] || m['SERIAL NUMBER']));
+  // Cập nhật nơi đến cho từng máy cụ thể
+  const setDestForMachine = (mId, destValue) => {
+    if (!destValue) {
+      const newDests = { ...machineDestinations };
+      delete newDests[mId];
+      setMachineDestinations(newDests);
+      return;
     }
+
+    let destObj = { id: '', name: '' };
+    if (destValue === 'KHO') {
+      destObj = { id: 'KHO', name: 'Kho Thuận An' };
+    } else {
+      const trạm = data.tbt.find(t => t.TBTID === destValue);
+      destObj = { id: destValue, name: trạm?.['TÊN DỰ KIẾN'] || destValue };
+    }
+
+    setMachineDestinations(prev => ({
+      ...prev,
+      [mId]: destObj
+    }));
   };
 
   const addToDispatch = () => {
-    if (!sourceLoc.id || !destLoc.id || selectedIds.length === 0) {
-      alert("Vui lòng chọn đầy đủ Nơi đi, Nơi đến và ít nhất một máy biến áp!");
+    const selectedIds = Object.keys(machineDestinations);
+    if (!sourceLoc.id || selectedIds.length === 0) {
+      alert("Vui lòng chọn Nơi đi và chỉ định Nơi đến cho ít nhất một máy!");
       return;
     }
     
@@ -390,12 +380,12 @@ export default function App() {
       .filter(m => selectedIds.includes(m['Số máy'] || m['SERIAL NUMBER']))
       .map(transformer => ({
         source: { ...sourceLoc }, 
-        destination: { ...destLoc }, 
+        destination: machineDestinations[transformer['Số máy'] || transformer['SERIAL NUMBER']], 
         transformer: transformer
       }));
 
     setDispatchCart([...dispatchCart, ...newItems]);
-    setSelectedIds([]); // Reset lựa chọn sau khi thêm
+    setMachineDestinations({}); // Reset lựa chọn sau khi thêm
   };
 
   const navItems = [
@@ -409,7 +399,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 overflow-hidden">
       
-      {/* TRANG IN KHỔ NGANG & ĐÃ XÓA THÔNG TIN THỪA */}
+      {/* TRANG IN KHỔ NGANG */}
       <DispatchPrintTemplate dispatchList={dispatchCart} metadata={metadata} />
 
       {/* SIDEBAR NAVIGATION */}
@@ -451,7 +441,7 @@ export default function App() {
           {activeTab === 'dashboard' && (
             <div className="space-y-6 max-w-5xl mx-auto w-full animate-in fade-in slide-in-from-top duration-700">
               <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic">Thống kê</h2>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic font-black">Thống kê</h2>
                 <button onClick={fetchData} disabled={loading} className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 text-slate-600 transition-all">
                   <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin text-blue-600' : ''}`} />
                 </button>
@@ -479,135 +469,124 @@ export default function App() {
           )}
 
           {activeTab === 'dispatch' && (
-            <div className="space-y-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-auto pb-10">
+            <div className="space-y-6 max-w-[90rem] mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-auto pb-10 px-1">
               <div className="flex flex-col gap-1">
-                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic font-black">Lập Phiếu MBT</h2>
-                <p className="text-slate-500 font-medium">Lập lệnh điều động nhiều máy cùng lúc nhanh chóng.</p>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase italic font-black">Điều Động MBT</h2>
+                <p className="text-slate-500 font-medium">Chỉ định nơi đến cụ thể cho từng máy biến áp.</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-fit">
-                {/* CẤU HÌNH VĂN BẢN */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-fit">
+                {/* 1. CẤU HÌNH VĂN BẢN */}
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1 h-fit">
-                  <h3 className="font-bold text-slate-800 flex items-center gap-2"><Info className="w-5 h-5 text-blue-500"/> Nội dung văn bản</h3>
+                  <h3 className="font-bold text-slate-800 flex items-center gap-2 uppercase text-sm tracking-widest"><Info className="w-4 h-4 text-blue-500"/> Nội dung</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">V/v điều động MBT để:</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">V/v điều động để:</label>
                       <input 
                         type="text" value={metadata.reason} 
                         onChange={(e) => setMetadata({...metadata, reason: e.target.value})}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none mt-1"
-                        placeholder="Ví dụ: hoán chuyển MBT non tải"
+                        placeholder="hoán chuyển MBT..."
                       />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Căn cứ văn bản:</label>
                       <textarea 
-                        rows="5" value={metadata.grounds}
+                        rows="4" value={metadata.grounds}
                         onChange={(e) => setMetadata({...metadata, grounds: e.target.value})}
                         className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none mt-1 leading-relaxed"
-                        placeholder="Nhập số văn bản và nội dung căn cứ..."
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* FORM CHỌN MÁY (Nâng cấp Checklist) */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-1 h-fit">
-                  <h3 className="font-bold text-blue-600 flex items-center gap-2 uppercase text-sm tracking-widest"><Plus className="w-5 h-5"/> Chọn nguồn và đích</h3>
+                {/* 2. CHỌN MÁY VÀ ĐỊA ĐIỂM */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2 h-fit flex flex-col">
+                  <h3 className="font-bold text-blue-600 flex items-center gap-2 uppercase text-sm tracking-widest"><Plus className="w-4 h-4"/> Chỉ định điều động</h3>
                   
-                  <div className="space-y-3">
-                    <select 
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'KHO') setSourceLoc({ type: 'KHO', id: 'KHO', name: 'Kho Thuận An' });
-                        else if (val) {
-                          const trạm = data.tbt.find(t => t.TBTID === val);
-                          setSourceLoc({ type: 'TRAM', id: val, name: trạm?.['TÊN DỰ KIẾN'] || val });
-                        } else setSourceLoc({ type: '', id: '', name: '' });
-                        setSelectedIds([]);
-                      }}
-                    >
-                      <option value="">-- Bước 1: Chọn Nơi Đi --</option>
-                      <option value="KHO">KHO THIẾT BỊ (Kho hiện tại)</option>
-                      {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
-                    </select>
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3 items-end">
+                        <div className="flex-1 w-full space-y-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nơi đi (Nguồn):</label>
+                            <select 
+                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === 'KHO') setSourceLoc({ type: 'KHO', id: 'KHO', name: 'Kho Thuận An' });
+                                    else if (val) {
+                                        const trạm = data.tbt.find(t => t.TBTID === val);
+                                        setSourceLoc({ type: 'TRAM', id: val, name: trạm?.['TÊN DỰ KIẾN'] || val });
+                                    } else setSourceLoc({ type: '', id: '', name: '' });
+                                    setMachineDestinations({});
+                                }}
+                            >
+                                <option value="">-- Chọn nơi đi --</option>
+                                <option value="KHO">KHO THIẾT BỊ (Kho hiện tại)</option>
+                                {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
+                            </select>
+                        </div>
+                    </div>
 
-                    {/* Vùng Checklist MBT */}
-                    <div className="space-y-2 border border-slate-100 rounded-2xl p-1">
-                      <div className="flex justify-between items-center px-2 py-1 bg-slate-50 rounded-xl mb-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Bước 2: Chọn máy ({selectedIds.length}/{availableTransformers.length})</span>
-                        {availableTransformers.length > 0 && (
-                          <button 
-                            onClick={toggleSelectAll}
-                            className="text-[10px] font-bold text-blue-600 hover:underline"
-                          >
-                            {selectedIds.length === availableTransformers.length ? 'Bỏ chọn hết' : 'Chọn tất cả'}
-                          </button>
-                        )}
+                    {/* Danh sách máy tại nguồn - Có ô chọn đích đến riêng */}
+                    <div className="space-y-2 border border-slate-100 rounded-2xl p-2 bg-slate-50/50">
+                      <div className="px-2 py-1 flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Danh sách máy tại nguồn ({availableTransformers.length})</span>
                       </div>
                       
-                      <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                      <div className="max-h-64 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                         {availableTransformers.length === 0 ? (
-                          <p className="text-center py-4 text-xs text-slate-400 italic">Chọn nơi đi để xem danh sách máy</p>
+                          <p className="text-center py-6 text-xs text-slate-400 italic font-medium uppercase tracking-widest">Chọn nơi đi để hiển thị MBT</p>
                         ) : (
                           availableTransformers.map((m, i) => {
                             const mId = m['Số máy'] || m['SERIAL NUMBER'];
-                            const isSelected = selectedIds.includes(mId);
+                            const currentDest = machineDestinations[mId];
+                            
                             return (
-                              <button 
-                                key={i}
-                                onClick={() => toggleSelect(mId)}
-                                className={`w-full flex items-center gap-3 p-2 rounded-xl border transition-all text-left ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-100 hover:bg-slate-50'}`}
-                              >
-                                {isSelected ? <CheckSquare className="w-4 h-4 text-blue-600 shrink-0" /> : <Square className="w-4 h-4 text-slate-300 shrink-0" />}
-                                <div className="overflow-hidden">
-                                  <p className="text-xs font-bold truncate">Số máy: {mId}</p>
-                                  <p className="text-[10px] text-slate-500">{m['Công suất'] || m['CS MBT']}kVA | {m['Hiệu máy'] || 'N/A'}</p>
+                              <div key={i} className={`p-3 rounded-2xl border transition-all flex flex-col sm:flex-row gap-3 items-center ${currentDest ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
+                                <div className="flex-1 overflow-hidden w-full sm:w-auto">
+                                  <p className="text-sm font-black truncate">Số máy: {mId}</p>
+                                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{m['Công suất'] || m['CS MBT']} kVA | {m['Hiệu máy'] || 'N/A'}</p>
                                 </div>
-                              </button>
+                                
+                                <div className="w-full sm:w-56 shrink-0 flex items-center gap-2">
+                                  <MapPin className={`w-4 h-4 shrink-0 ${currentDest ? 'text-blue-600' : 'text-slate-300'}`} />
+                                  <select 
+                                    className={`w-full p-2 text-[11px] font-bold rounded-xl border outline-none transition-all ${currentDest ? 'border-blue-400 bg-white ring-2 ring-blue-100' : 'border-slate-200 bg-slate-50 focus:border-blue-300'}`}
+                                    value={currentDest?.id || ""}
+                                    onChange={(e) => setDestForMachine(mId, e.target.value)}
+                                  >
+                                    <option value="">-- Chọn đích đến --</option>
+                                    <option value="KHO">VỀ KHO THIẾT BỊ</option>
+                                    {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
+                                  </select>
+                                </div>
+                              </div>
                             );
                           })
                         )}
                       </div>
                     </div>
-
-                    <select 
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'KHO') setDestLoc({ type: 'KHO', id: 'KHO', name: 'Kho Thuận An' });
-                        else if (val) {
-                          const trạm = data.tbt.find(t => t.TBTID === val);
-                          setDestLoc({ type: 'TRAM', id: val, name: trạm?.['TÊN DỰ KIẾN'] || val });
-                        } else setDestLoc({ type: '', id: '', name: '' });
-                      }}
-                    >
-                      <option value="">-- Bước 3: Chọn Nơi Đến --</option>
-                      <option value="KHO">VỀ KHO THIẾT BỊ</option>
-                      {data.tbt.map(t => <option key={t.TBTID} value={t.TBTID}>{t.TBTID} - {t['TÊN DỰ KIẾN']}</option>)}
-                    </select>
                   </div>
 
                   <button 
                     onClick={addToDispatch} 
-                    disabled={selectedIds.length === 0}
-                    className="w-full bg-blue-600 text-white p-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg active:scale-95 transition-all text-xs disabled:opacity-30"
+                    disabled={Object.keys(machineDestinations).length === 0}
+                    className="mt-4 w-full bg-blue-600 text-white p-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl active:scale-95 transition-all text-xs disabled:opacity-30 flex items-center justify-center gap-2"
                   >
-                    Thêm {selectedIds.length > 0 ? selectedIds.length : ''} máy vào phiếu
+                    <Plus className="w-4 h-4" /> Thêm {Object.keys(machineDestinations).length > 0 ? Object.keys(machineDestinations).length : ''} máy đã chỉ định vào phiếu
                   </button>
                 </div>
 
-                {/* DANH SÁCH LỆNH */}
-                <div className="bg-slate-800 text-white p-6 rounded-3xl shadow-xl flex flex-col h-full lg:col-span-1 min-h-[450px]">
+                {/* 3. PHIẾU TẠM */}
+                <div className="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl flex flex-col h-full lg:col-span-1 min-h-[450px]">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold flex items-center gap-2 text-xs uppercase tracking-widest"><FileText className="w-4 h-4 text-emerald-400"/> Phiếu tạm</h3>
+                    <h3 className="font-bold flex items-center gap-2 text-xs uppercase tracking-widest"><FileText className="w-4 h-4 text-emerald-400"/> Phiếu điều động</h3>
                     <button 
                       onClick={() => window.print()}
                       disabled={dispatchCart.length === 0}
-                      className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 hover:bg-emerald-600 transition-all disabled:opacity-30 shadow-lg shadow-emerald-500/20 uppercase"
+                      className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-[10px] font-black flex items-center gap-2 hover:bg-emerald-600 transition-all disabled:opacity-30 shadow-lg shadow-emerald-500/20 uppercase"
                     >
-                      <Printer className="w-4 h-4"/> Xuất Phiếu
+                      <Printer className="w-4 h-4"/> In Phiếu
                     </button>
                   </div>
 
@@ -615,17 +594,17 @@ export default function App() {
                     {dispatchCart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-slate-500 py-10 opacity-30">
                         <ArrowLeftRight className="w-12 h-12 mb-2"/>
-                        <p className="text-xs font-bold uppercase tracking-widest text-center">Chưa có máy nào<br/>được chọn</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-center">Chưa có dữ liệu</p>
                       </div>
                     ) : (
                       dispatchCart.map((item, i) => (
-                        <div key={i} className="bg-slate-700/40 p-4 rounded-2xl border border-slate-600/30 flex justify-between items-center animate-in slide-in-from-right duration-300">
+                        <div key={i} className="bg-slate-700/40 p-3 rounded-2xl border border-slate-600/30 flex justify-between items-center animate-in slide-in-from-right duration-300">
                           <div className="flex-1 overflow-hidden">
-                            <div className="text-[10pt] font-black text-emerald-400 uppercase tracking-widest mb-1 truncate">
-                              {item.source.name} ➔ {item.destination.name}
+                            <div className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1 truncate flex items-center gap-1">
+                              {item.source.name} <ChevronRight className="w-2 h-2"/> {item.destination.name}
                             </div>
-                            <div className="text-sm font-black truncate">Số máy: {item.transformer['Số máy'] || item.transformer['SERIAL NUMBER']}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">CS: {item.transformer['Công suất'] || item.transformer['CS MBT']} kVA | {item.transformer['Hiệu máy'] || 'N/A'}</div>
+                            <div className="text-xs font-black truncate">Số máy: {item.transformer['Số máy'] || item.transformer['SERIAL NUMBER']}</div>
+                            <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">CS: {item.transformer['Công suất'] || item.transformer['CS MBT']} kVA</div>
                           </div>
                           <button onClick={() => setDispatchCart(dispatchCart.filter((_, idx) => idx !== i))} className="p-2 ml-2 text-slate-400 hover:text-red-400 transition-colors">
                             <Trash2 className="w-4 h-4"/>
@@ -636,7 +615,7 @@ export default function App() {
                   </div>
                   
                   {dispatchCart.length > 0 && (
-                    <button onClick={() => setDispatchCart([])} className="mt-4 text-[10px] text-slate-500 hover:text-red-400 font-black uppercase tracking-widest text-center transition-colors">Hủy toàn bộ phiếu</button>
+                    <button onClick={() => setDispatchCart([])} className="mt-4 text-[9px] text-slate-500 hover:text-red-400 font-black uppercase tracking-widest text-center transition-colors">Hủy toàn bộ</button>
                   )}
                 </div>
               </div>
